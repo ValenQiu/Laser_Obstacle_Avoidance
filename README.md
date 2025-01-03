@@ -52,3 +52,4 @@ ll /dev/oradar1
 ```
 lrwxrwxrwx 1 root root 7 Jan  3 16:47 /dev/oradar1 -> ttyACM0
 ```
+输入其他设备的编号（oradar2和oradar3）可查看其余两个设备的端口编号。
