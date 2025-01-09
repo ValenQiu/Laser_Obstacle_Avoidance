@@ -1,0 +1,33 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/valenqiu/catkin_ws/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/valenqiu/catkin_ws/src/aruco_ros/aruco/include/**",
+        "/home/valenqiu/catkin_ws/src/aruco_ros/aruco_ros/include/**",
+        "/home/valenqiu/catkin_ws/src/beginner_tutorials/include/**",
+        "/home/valenqiu/catkin_ws/src/find_object_2d/include/**",
+        "/home/valenqiu/catkin_ws/src/geometric_shapes/include/**",
+        "/home/valenqiu/catkin_ws/src/gesture/include/**",
+        "/home/valenqiu/catkin_ws/src/leap_client/include/**",
+        "/home/valenqiu/catkin_ws/src/robot_hand_control/include/**",
+        "/home/valenqiu/catkin_ws/src/robotiq/robotiq_gazebo/include/**",
+        "/home/valenqiu/catkin_ws/src/srdfdom/include/**",
+        "/home/valenqiu/catkin_ws/src/ur5_control/include/**",
+        "/home/valenqiu/catkin_ws/src/universal_robot/ur_kinematics/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
