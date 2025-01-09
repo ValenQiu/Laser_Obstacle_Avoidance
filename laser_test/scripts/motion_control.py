@@ -19,6 +19,10 @@ class Controller:
         self.RAD2DEG = 180 / math.pi
         self.DEG2RAD = math.pi / 180
 
+        # range of distances for avoidance, in meters (m)
+        self.R = 0.8
+        self.Rm = 0.45
+        self.r = 0.3
 
         # Store the poses
         self.poses = [None, None, None]     # [object1, object2, object3]
@@ -36,7 +40,7 @@ class Controller:
         self.subscriber_3 = rospy.Subscriber(self.topic_subscribed_3, PoseStamped, self.pose_callback)
 
         # Publisher for the filtered laser scan topic
-        # self.publisher = rospy.Publisher(self.topic_published, Twist, queue_size=10)
+        self.publisher = rospy.Publisher(self.topic_published, Twist, queue_size=10)
 
     def cal_dist(self, x, y):
         dist = math.sqrt(x**2+y**2)
@@ -66,10 +70,67 @@ class Controller:
             x = min_distance_pose[0]
             y = min_distance_pose[1]
             theta = math.atan2(y, x) * self.RAD2DEG
+            if theta < 0:
+                theta += 360
             rospy.loginfo('min_distance_x: %s', x)
             rospy.loginfo('min_distance_y: %s', y)
             rospy.loginfo('min_distance_angle: %s', theta)
             rospy.loginfo('---------------------------------------')
+
+            motion = Twist()
+            # ==================================================
+            # Policy for avoidance:
+            # ==================================================
+            # IF dist > R: 
+            #   -> move normal (v = 1, w = 0)
+            # ELSE IF Rm < dist < R: 
+            #   -> lower the speed (v = 0.5)
+            #   -> determine the angular speed
+            # ELSE IF r < dist < Rm:
+            #   -> stop (v = 0, w = 0)
+            # ELSE (dist < r):
+            #   -> go backward (v = -0.3)
+            #   -> determine the angular speed
+            # ==================================================
+            # Determine the angular speed
+            # ==================================================
+            # IF -45 < theta < 45 or 135 < theta < 225:
+            #   -> w = 0
+            # ELSE IF 45 < theta < 135 (on the left side):
+            #   -> w = -0.3 (turns right)
+            # ELSE IF 225 < theta < 315 (on the right side):
+            #   -> w = 0.3 (turns left)
+            # ==================================================
+            # END
+            # ==================================================
+
+            if min_distance > self.R:
+                motion.linear.x = 1
+                motion.angular.z = 0
+            elif self.Rm < min_distance < self.R:
+                motion.linear.x = 0.5
+                motion.angular.z = self.determine_angular_speed(theta)
+            elif self.r < min_distance < self.Rm:
+                motion.linear.x = 0
+                motion.linear.z = 0
+            elif min_distance < self.r:
+                motion.linear.x = -0.3
+                motion.angular.z = self.determine_angular_speed(theta)
+
+            self.publisher.publish(motion)
+            rospy.logwarn('published message: %s', motion)
+
+    def determine_angular_speed(self, theta):
+        # input: theta in range of [0, 360]
+        angular = 0
+        if 0 <= theta <= 45 | 315 <= theta <= 360 | 135 <= theta <= 225:
+            angular = 0
+        elif 45 < theta < 135:
+            angular = -0.3
+        elif 225 < theta < 315:
+            angular = 0.3
+        
+        return angular
     
     def calculate_min_distance(self):
         # Calculate the pairwise distances
