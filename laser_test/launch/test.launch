@@ -1,0 +1,28 @@
+<launch>
+    <!-- Launch the base.launch file -->
+    <include file="$(find oradar_lidar)/launch/laser_scan.launch"/>
+    <!-- 启动激光雷达避障节点 -->
+    <!-- Activate lidar obstacle avoidance node -->
+    <node name='laser_scan_filter1' pkg="laser_test" type="laser_scan_filter.py" required="true" output="screen">
+
+        <param name="detect_angle_min" type="int"   value="-45"/>				<!--Minimum Detect Angle-->
+        <param name="detect_angle_max" type="int"   value="135"/>				<!--Maximum Detect Angle-->
+        <param name="ResponseDist_max" type="double"   value="0.8"/>				<!--Minimum Detect Angle-->
+        <param name="ResponseDist_min" type="double"   value="0.15"/>				<!--Maximum Detect Angle-->
+        <param name="topic_subscribed" value="/scan1"/>				<!--Maximum Detect Angle-->
+        <param name="topic_published"  value="/filtered1"/>				<!--Maximum Detect Angle-->
+    
+    </node>
+
+    <node name='laser_scan_filter2' pkg="laser_test" type="laser_scan_filter.py" required="true" output="screen">
+
+        <param name="detect_angle_min" type="int"   value="-135"/>				<!--Minimum Detect Angle-->
+        <param name="detect_angle_max" type="int"   value="45"/>				<!--Maximum Detect Angle-->
+        <param name="ResponseDist_max" type="double"   value="0.8"/>				<!--Minimum Detect Angle-->
+        <param name="ResponseDist_min" type="double"   value="0.15"/>				<!--Maximum Detect Angle-->
+        <param name="topic_subscribed" value="/scan2"/>				<!--Maximum Detect Angle-->
+        <param name="topic_published" value="/filtered2"/>				<!--Maximum Detect Angle-->
+    
+    </node>
+
+</launch>
