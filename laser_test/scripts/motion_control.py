@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 from visualization_msgs.msg import Marker
 import math
 from numpy import nan, inf
+import time
 
 class Controller:
     def __init__(self):
@@ -21,6 +22,7 @@ class Controller:
 
         # Store the poses
         self.poses = [None, None, None]     # [object1, object2, object3]
+        self.frame_ids = ['/laser1', '/laser2', '/laser3']
 
         self.topic_subscribed_1 = rospy.get_param('~topic_subscribed_1', '/object1')
         self.topic_subscribed_2 = rospy.get_param('~topic_subscribed_2', '/object2')
@@ -54,38 +56,54 @@ class Controller:
 
         # Calculate and publish the minimum distance if we have three poses
         if any(pose is not None for pose in self.poses):
-            min_distance, min_distance_index = self.calculate_min_distance()
+            min_distance, min_distance_index, min_distance_pose = self.calculate_min_distance()
             # self.publisher.publish(min_distance)
-            rospy.loginfo('min_distance: ')
-            rospy.loginfo(min_distance)
-            rospy.loginfo('min_distance_index: ')
-            rospy.loginfo(min_distance_index)
-            x = self.poses[min_distance_index].x
-            y = self.poses[min_distance_index].y
+            rospy.loginfo('---------------------------------------')
+            rospy.loginfo('min_distance: %s', min_distance)
+            # rospy.loginfo(min_distance)
+            rospy.loginfo('min_distance_index: %s', min_distance_index)
+            # rospy.loginfo(min_distance_index)
+            x = min_distance_pose[0]
+            y = min_distance_pose[1]
             theta = math.atan2(y, x) * self.RAD2DEG
-            rospy.loginfo('min_distance_x: ')
-            rospy.loginfo(x)
-            rospy.loginfo('min_distance_y: ')
-            rospy.loginfo(y)
-            rospy.loginfo('min_distance_angle: ')
-            rospy.loginfo(theta)
+            rospy.loginfo('min_distance_x: %s', x)
+            rospy.loginfo('min_distance_y: %s', y)
+            rospy.loginfo('min_distance_angle: %s', theta)
+            rospy.loginfo('---------------------------------------')
     
     def calculate_min_distance(self):
         # Calculate the pairwise distances
         distances = []
+        poses = []
         for i in range(len(self.poses)):
-            distance = self.cal_dist(self.poses[i].x , self.poses[i].y)
+            trans = self.transform_pose('/base', self.frame_ids[i])
+            # rospy.loginfo('---------------------------------------')
+            # rospy.loginfo('index: %s', i)
+            # rospy.loginfo('trans: %s',trans)
+            # rospy.loginfo('before transpose: %s', [self.poses[i].x, self.poses[i].y])
+            x = self.poses[i].x + trans[0]
+            y = self.poses[i].y + trans[1]
+            # rospy.loginfo('after transpose: %s', [x, y])
+            # rospy.loginfo('---------------------------------------')
+            poses.append([x,y])
+        
+        for i in range(len(poses)):
+            distance = self.cal_dist(poses[i][0] , poses[i][1])
             distances.append(distance)
 
+        min_distance = min(distances)
+        min_distance_index = distances.index(min_distance)
+        min_distance_pose = poses[min_distance_index]
         # Return the minimum distance
-        return min(distances), distances.index(min(distances))
+        return min_distance, min_distance_index, min_distance_pose
     
-    def transform_pose(self, pose_stamped, target_frame):
-        # 获取当前时间戳
-        
+    def transform_pose(self, current_frame, target_frame):
         # 转换 PoseStamped 到目标坐标系
-        transformed_pose = self.tf_buffer.transform(pose_stamped, target_frame, self.current_time)
-        return transformed_pose
+        (trans, rot) = self.tf_listener.lookupTransform(current_frame, target_frame, rospy.Time(0))
+        # rospy.loginfo('---------------------------------------')
+        # rospy.loginfo('trans: %s',trans)
+        # rospy.loginfo('---------------------------------------')
+        return trans
     
     def run(self):
         rospy.spin()
