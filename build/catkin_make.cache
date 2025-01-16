@@ -1,0 +1,2 @@
+beginner_tutorials:laser_test:oradar_ros:yahboomcar_laser
+-DCATKIN_DEVEL_PREFIX=/home/pi/oradar_ws/devel -DCMAKE_INSTALL_PREFIX=/home/pi/oradar_ws/install -G Unix Makefiles
